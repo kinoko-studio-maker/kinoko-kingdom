@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>キノコ王国</title>
+  <!-- 文字（フォント）：Kiwi Maru（本文）と Yusei Magic（見出し・数字）。どちらも無料で使える Google Fonts -->
+  <!-- インターネットにつながっていないときは、パソコンにある文字で表示される -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@400;500&family=Yusei+Magic&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 画面全体（スクロールせずに1画面に収める） -->
+  <div id="app" class="app" data-tab="shop">
+    <header class="header">
+      <h1><span class="title-icon">🍄 </span><span class="title-text">キノコ王国</span></h1>
+      <div class="header-buttons">
+        <button id="sound-button" class="header-button">🔊</button>
+        <button id="ranking-open" class="header-button">👑<span class="button-label"> ランキング</span></button>
+        <button id="prestige-open" class="header-button prestige-open">⭐<span class="button-label"> 転生</span></button>
+        <button id="zukan-open" class="header-button">📖<span class="button-label"> 図鑑</span> <span id="zukan-count">0/0</span></button>
+        <button id="achievement-button" class="header-button">🏆<span class="button-label"> 実績</span> <span id="achievement-count">0/0</span></button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- ステージ（王様キノコと、地下に広がる菌糸ネット） -->
+      <section id="stage" class="stage">
+        <!-- 菌糸・実・胞子の粒は、この canvas に world.js が描く -->
+        <canvas id="world-canvas"></canvas>
+
+        <div class="counter">
+          <div><span id="spores" class="spores">0</span><span class="spores-label">胞子</span></div>
+          <!-- 数字が長くて入りきらないときは、「毎秒」と「クリック」を2行に分ける（game.js の fitCounter） -->
+          <div class="sps"><span class="sps-part">毎秒 <span id="sps">0</span></span><span class="sps-dot">　・　</span><span class="sps-part">クリック +<span id="click-value">1</span></span></div>
+          <div id="star-line" class="star-line" hidden></div>
+          <div id="golden-line" class="golden-line" hidden></div>
+          <div class="fever-box">
+            <div class="fever-gauge"><span id="fever-bar"></span></div>
+            <div id="fever-label" class="fever-label"></div>
+          </div>
+        </div>
+
+        <!-- 左上：今の時間帯と天気 -->
+        <div class="weather">
+          <div id="weather-title" class="weather-title"></div>
+          <div id="weather-effect" class="weather-effect"></div>
+        </div>
+
+        <!-- 王様キノコの横：コンボの数 -->
+        <div id="combo" class="combo" hidden></div>
+
+        <!-- 右上：菌糸の根（施設を植える場所）を開くボタン -->
+        <button id="root-open" class="stage-button">🕸️ 根</button>
+        <!-- 右上の2つ目：ログインボーナスと今日のミッション（daily.js） -->
+        <button id="daily-open" class="stage-button daily-open">📅 毎日 <span id="daily-badge" class="badge" hidden></span></button>
+
+        <!-- ときどき空に現れる金のキノコ（golden.js） -->
+        <button id="golden" class="golden" aria-label="金のキノコ。押すとボーナス" hidden>
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <path d="M38 56 Q36 80 34 90 Q50 95 66 90 Q64 80 62 56 Z" fill="#fff1c4" />
+            <path d="M8 60 Q8 14 50 12 Q92 14 92 60 Q50 68 8 60 Z" fill="#f2b51d" stroke="#a8740a" stroke-width="3" />
+            <circle cx="32" cy="36" r="7" fill="#fff6c8" />
+            <circle cx="58" cy="26" r="5" fill="#fff6c8" />
+            <circle cx="72" cy="44" r="8" fill="#fff6c8" />
+          </svg>
+        </button>
+
+        <button id="mushroom" class="mushroom" aria-label="王様キノコをクリックして胞子を集める">
+          <svg viewBox="0 0 200 200" aria-hidden="true">
+            <path d="M74 108 Q70 160 66 180 Q100 190 134 180 Q130 160 126 108 Z" fill="#f3e6c8" />
+            <path d="M18 116 Q18 28 100 24 Q182 28 182 116 Q100 132 18 116 Z" fill="#d9413a" />
+            <circle cx="62" cy="72" r="13" fill="#fff6e8" />
+            <circle cx="108" cy="48" r="9" fill="#fff6e8" />
+            <circle cx="142" cy="84" r="15" fill="#fff6e8" />
+            <circle cx="96" cy="94" r="8" fill="#fff6e8" />
+            <circle cx="40" cy="102" r="6" fill="#fff6e8" />
+            <polygon points="80,30 84,8 93,20 100,2 107,20 116,8 120,30" fill="#ffd166" stroke="#c98f1c" stroke-width="2" stroke-linejoin="round" />
+            <g class="eyes">
+              <circle cx="88" cy="146" r="5" fill="#3a2a1a" />
+              <circle cx="112" cy="146" r="5" fill="#3a2a1a" />
+            </g>
+            <path d="M92 158 Q100 165 108 158" stroke="#3a2a1a" stroke-width="3" fill="none" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <p id="hint" class="hint">👆 王様キノコをクリックして胞子を集めよう</p>
+        <div id="announce" class="announce" hidden></div>
+      </section>
+
+      <!-- スマホだけ：下の表示を切り替えるタブ -->
+      <nav class="tabs">
+        <button data-tab="shop" class="active">施設</button>
+        <button data-tab="side">目標・強化 <span id="tab-badge" class="badge" hidden></span></button>
+      </nav>
+
+      <!-- 次の目標 と 強化 -->
+      <aside class="side">
+        <section class="panel panel-goal">
+          <h2>次の目標</h2>
+          <div id="goal-list" class="goal-list"></div>
+        </section>
+        <section class="panel panel-upgrade">
+          <h2>強化 <span id="upgrade-badge" class="badge" hidden></span></h2>
+          <div id="upgrade-list" class="upgrade-list scroll"></div>
+          <p id="upgrade-empty" class="empty">まだ買える強化はありません</p>
+        </section>
+      </aside>
+
+      <!-- 施設（自動で胞子を作ってくれる） -->
+      <section class="panel panel-shop">
+        <h2>施設</h2>
+        <div id="buy-mode" class="buy-mode">
+          <button data-mode="1" class="active">×1</button>
+          <button data-mode="10">×10</button>
+          <button data-mode="max">最大</button>
+        </div>
+        <div id="facility-list" class="facility-list scroll"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 実績と記録のウィンドウ -->
+  <div id="achievement-modal" class="modal" hidden>
+    <div class="modal-box modal-wide">
+      <button id="achievement-close" class="close-button" aria-label="閉じる">✕</button>
+      <h2>🏆 実績 <span id="achievement-summary" class="sub"></span></h2>
+      <div id="achievement-list" class="achievement-list"></div>
+
+      <h2>記録</h2>
+      <dl class="stats">
+        <dt>累計の胞子</dt><dd id="stat-total">0</dd>
+        <dt>クリック回数</dt><dd id="stat-clicks">0</dd>
+        <dt>施設の合計</dt><dd id="stat-buildings">0</dd>
+        <dt>実績ボーナス</dt><dd id="stat-bonus">+0%</dd>
+        <dt>転生した回数</dt><dd id="stat-prestige">0 回</dd>
+      </dl>
+      <button id="reset-button" class="reset-button">データを消して最初から</button>
+    </div>
+  </div>
+
+  <!-- キノコ図鑑のウィンドウ -->
+  <div id="zukan-modal" class="modal" hidden>
+    <div class="modal-box modal-wide">
+      <button id="zukan-close" class="close-button" aria-label="閉じる">✕</button>
+      <h2>📖 キノコ図鑑 <span id="zukan-summary" class="sub"></span></h2>
+      <p class="modal-note">ちびキノコを買うと、ときどきめずらしいキノコが生えます。初めて見つけた種類は、ずっと続くボーナスになります（転生しても消えません）。</p>
+      <div id="zukan-list" class="zukan-list"></div>
+    </div>
+  </div>
+
+  <!-- 菌糸の根のウィンドウ -->
+  <div id="root-modal" class="modal" hidden>
+    <div class="modal-box modal-wide">
+      <button id="root-close" class="close-button" aria-label="閉じる">✕</button>
+      <h2>🕸️ 菌糸の根</h2>
+      <p class="modal-note">
+        施設は、どれか1本の根に植わっています（1本に3種類まで）。相性の良い施設を同じ根に植えると、両方の生産が <b>+30%</b>。<br>
+        植え替えるには、施設を押してから、移したい根の「あき」か、入れかえたい施設を押してください。
+      </p>
+      <div id="root-list" class="root-list"></div>
+      <h2>相性表</h2>
+      <div id="synergy-list" class="synergy-list"></div>
+    </div>
+  </div>
+
+  <!-- ログインボーナスと今日のミッションのウィンドウ -->
+  <div id="daily-modal" class="modal" hidden>
+    <div class="modal-box modal-wide daily-box">
+      <button id="daily-close" class="close-button" aria-label="閉じる">✕</button>
+      <h2>📅 ログインボーナス</h2>
+      <p id="daily-streak" class="modal-note"></p>
+      <div id="login-calendar" class="login-calendar"></div>
+      <button id="login-claim" class="ok-button login-claim">受け取る</button>
+      <h2>今日のミッション</h2>
+      <p class="modal-note">毎日0時に新しくなります。達成したら「受け取る」でごほうびがもらえます。</p>
+      <div id="mission-list" class="mission-list"></div>
+      <button id="mission-all" class="ok-button mission-all">3つぜんぶ達成のおまけ</button>
+    </div>
+  </div>
+
+  <!-- 世界ランキングのウィンドウ -->
+  <div id="ranking-modal" class="modal" hidden>
+    <div class="modal-box modal-wide ranking-box">
+      <button id="ranking-close" class="close-button" aria-label="閉じる">✕</button>
+      <h2>👑 世界ランキング <span class="sub">累計の胞子</span></h2>
+      <div id="ranking-join" class="ranking-join">
+        <p class="modal-note">
+          名前を決めて参加すると、あなたの「累計の胞子」がランキングにのります（5分ごとに自動で更新）。<br>
+          名前はみんなに公開されます。<b>本名・学校名・住所などは入れないでください。</b>
+        </p>
+        <div class="ranking-form">
+          <input id="ranking-name" class="ranking-input" maxlength="24" placeholder="ニックネーム（12文字まで）" autocomplete="off">
+          <button id="ranking-save" class="ok-button">参加する</button>
+          <button id="ranking-leave" class="ranking-leave" hidden>参加をやめる</button>
+        </div>
+        <p id="ranking-error" class="ranking-error"></p>
+      </div>
+      <div class="ranking-head">
+        <div id="ranking-me" class="ranking-me"></div>
+        <button id="ranking-reload" class="ranking-reload">↻ 更新</button>
+      </div>
+      <ol id="ranking-list" class="ranking-list"></ol>
+      <p id="ranking-status" class="modal-note"></p>
+    </div>
+  </div>
+
+  <!-- 転生のウィンドウ -->
+  <div id="prestige-modal" class="modal" hidden>
+    <div class="modal-box modal-wide prestige-box">
+      <button id="prestige-close" class="close-button" aria-label="閉じる">✕</button>
+      <h2>⭐ 転生</h2>
+      <p class="prestige-desc">
+        王国を土に還して、新しく生まれ変わります。<br>
+        この周回で集めた胞子に応じて <b>星の胞子</b> がもらえます。<br>
+        星の胞子1つにつき、生産が <b>+10%</b>（ずっと続く）。
+      </p>
+      <div class="prestige-numbers">
+        <div class="prestige-number">
+          <div class="sub">今の星の胞子</div>
+          <div class="big" id="prestige-have">0</div>
+          <div class="sub">生産 <span id="prestige-have-bonus">+0%</span></div>
+        </div>
+        <div class="prestige-arrow">＋</div>
+        <div class="prestige-number gain">
+          <div class="sub">今転生するともらえる</div>
+          <div class="big" id="prestige-gain">0</div>
+          <div class="sub">生産 <span id="prestige-gain-bonus">+0%</span></div>
+        </div>
+      </div>
+      <div class="goal-bar"><span id="prestige-bar"></span></div>
+      <div id="prestige-next" class="goal-remain"></div>
+      <ul class="prestige-rules">
+        <li>なくなるもの：胞子・施設・強化・地上のレア種</li>
+        <li>残るもの：実績・星の胞子・図鑑・根の植え方・記録</li>
+      </ul>
+      <button id="prestige-button" class="prestige-button">転生する</button>
+      <!-- 星の道：星の胞子がたまると解放される特典（starroad.js） -->
+      <h2>⭐ 星の道</h2>
+      <p class="modal-note">星の胞子が決まった数たまると、ずっと続く特典が解放されます（星の胞子は減りません）。</p>
+      <ul id="star-road" class="star-road"></ul>
+    </div>
+  </div>
+
+  <!-- クリックしたときに浮かぶ「+1」の文字を置く場所 -->
+  <div id="effects" class="effects"></div>
+
+  <!-- 実績解除などの小さなお知らせ -->
+  <div id="toast-area" class="toast-area"></div>
+
+  <!-- お知らせ用の小さなウィンドウ -->
+  <div id="modal" class="modal" hidden>
+    <div class="modal-box">
+      <p id="modal-text"></p>
+      <button id="modal-close" class="ok-button">OK</button>
+    </div>
+  </div>
+
+  <!-- 仕組み → 各機能 → 演出 → スタート の順に読み込む -->
+  <script src="game.js"></script>
+  <script src="combo.js"></script>
+  <script src="weather.js"></script>
+  <script src="zukan.js"></script>
+  <script src="district.js"></script>
+  <script src="world.js"></script>
+  <script src="sound.js"></script>
+  <script src="golden.js"></script>
+  <script src="daily.js"></script>
+  <script src="starroad.js"></script>
+  <!-- ランキング：Firebase（Google の無料サービス）の部品 → 設定 → ランキングの仕組み。ネットがなくてもゲームは動く -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="ranking.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

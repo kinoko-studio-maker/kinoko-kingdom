@@ -1,0 +1,900 @@
+/* =============================================
+   キノコ王国 ― 見た目
+   テーマ：「森の木の看板」
+   木の板のパネルに、古い紙のカード、茶色のインクの文字
+   ============================================= */
+
+/* ===== 色の設定（ここを変えると全体の色が変わる） ===== */
+:root {
+  --forest: #161d12;        /* 一番うしろの背景（夜の森） */
+  --wood-dark: #3b2617;     /* 木のふち・こげ茶 */
+  --wood: #6b4a2e;          /* 木の板 */
+  --wood-light: #8a6239;    /* 明るい木 */
+  --paper: #f4e6c4;         /* 古い紙 */
+  --paper-dark: #e2cc9c;    /* 古い紙のふち・買えないとき */
+  --paper-line: #b08654;    /* 紙のふち線 */
+  --ink: #45301d;           /* 茶色のインク（本文） */
+  --ink-soft: #7a5b3c;      /* うすいインク（説明文） */
+  --moss: #4f7a2c;          /* こけの緑（生産・効果） */
+  --red: #a63a28;           /* 赤いインク（足りない値段） */
+  --gold: #e8b84a;          /* 金（買える・転生） */
+  --cream: #fff1cf;         /* 木の上の文字 */
+  --title-font: "Yusei Magic", "Kiwi Maru", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body { height: 100%; overflow: hidden; }   /* ページ全体はスクロールさせない */
+body {
+  margin: 0;
+  font-family: "Kiwi Maru", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+  background: radial-gradient(ellipse at 50% 0%, #2c3a22 0%, var(--forest) 65%), var(--forest);
+  background-color: var(--forest);
+  color: var(--ink);
+}
+button { font: inherit; }
+.sub { color: var(--ink-soft); font-size: 0.85rem; font-weight: normal; }
+
+/* 一覧のスクロールバーも木の色に */
+.scroll { scrollbar-width: thin; scrollbar-color: var(--wood-light) transparent; }
+
+/* ===== 画面全体：見出し＋本体を、ちょうど1画面に収める ===== */
+.app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+.header { position: relative; flex: none; padding: 8px 16px; text-align: left; }   /* 右のボタンと重ならないよう、タイトルは左寄せ */
+.header h1 {
+  margin: 0;
+  color: var(--cream);
+  font-family: var(--title-font);
+  font-size: 1.6rem;
+  font-weight: normal;
+  letter-spacing: 0.12em;
+  text-shadow: 0 2px 0 var(--wood-dark), 0 0 12px rgba(0, 0, 0, 0.6);
+}
+.header-buttons { position: absolute; top: 50%; right: 16px; display: flex; gap: 8px; transform: translateY(-50%); }
+
+/* 木の札のボタン */
+.header-button {
+  padding: 5px 14px;
+  border: 2px solid var(--wood-dark);
+  border-radius: 8px;
+  background: linear-gradient(180deg, var(--wood-light), var(--wood));
+  color: var(--cream);
+  font-family: var(--title-font);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--wood-dark);
+  text-shadow: 0 1px 0 var(--wood-dark);
+  transition: transform 0.08s;
+}
+.header-button:hover { filter: brightness(1.1); }
+.header-button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-dark); }
+/* 転生できるようになったら、金の札になってゆっくり光る */
+.prestige-open.ready {
+  border-color: #8a5a10;
+  background: linear-gradient(180deg, #f6d27a, var(--gold));
+  color: var(--wood-dark);
+  text-shadow: none;
+  animation: readyGlow 1.4s ease-in-out infinite;
+}
+@keyframes readyGlow {
+  0%, 100% { box-shadow: 0 3px 0 #8a5a10, 0 0 0 rgba(232, 184, 74, 0); }
+  50% { box-shadow: 0 3px 0 #8a5a10, 0 0 14px rgba(232, 184, 74, 0.8); }
+}
+
+/* パソコン：ステージ｜目標・強化｜施設 の3列 */
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px 370px;
+  grid-template-areas: "stage side shop";
+  gap: 12px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 12px 12px;
+}
+.tabs { display: none; }   /* タブはスマホだけ */
+
+/* ===== 木の板のパネル ===== */
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 10px;
+  border: 3px solid var(--wood-dark);
+  border-radius: 10px;
+  /* 木目：細い縦線を重ねて、板らしく見せる */
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 13px),
+    repeating-linear-gradient(90deg, rgba(255, 220, 170, 0.04) 0 1px, transparent 1px 41px),
+    linear-gradient(180deg, #7a5233, #5b3c24);
+  box-shadow: inset 0 0 0 2px rgba(255, 210, 150, 0.12), 0 4px 0 #24160c, 0 8px 18px rgba(0, 0, 0, 0.45);
+}
+/* パネルの見出し：こげ茶の小さな看板（両はしにくぎ） */
+.panel h2, .modal-box h2 {
+  position: relative;
+  align-self: flex-start;
+  margin: 0 0 8px;
+  padding: 3px 18px;
+  border-radius: 4px;
+  background: #4a3019;
+  color: var(--cream);
+  font-family: var(--title-font);
+  font-size: 1rem;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 220, 170, 0.15);
+}
+.panel h2::before, .panel h2::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+  background: #c9a46a;
+  box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.4);
+}
+.panel h2::before { left: 6px; }
+.panel h2::after { right: 6px; }
+.modal-box h2 { display: inline-block; }   /* ウィンドウの中でも、小さな看板の形にする */
+
+.side { grid-area: side; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.panel-goal { flex: none; }
+.panel-upgrade { flex: 1; }
+.panel-shop { grid-area: shop; }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 4px 2px; }   /* 一覧が長いときは、その中だけスクロール */
+
+/* 赤いロウ（封ろう）のような数字のしるし */
+.badge {
+  display: inline-block;
+  min-width: 1.6em;
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #b8332a;
+  color: var(--cream);
+  font-family: var(--title-font);
+  font-size: 0.8rem;
+  text-align: center;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* ===== ステージ（王様キノコと菌糸ネット） ===== */
+.stage {
+  --ground: 46%;      /* 地面の高さ（上からの割合） */
+  --king: 150px;      /* 王様キノコの大きさ */
+  grid-area: stage;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  border: 3px solid var(--wood-dark);
+  border-radius: 10px;
+  background: #140f22;
+  box-shadow: 0 4px 0 #24160c, 0 8px 18px rgba(0, 0, 0, 0.45);
+}
+#world-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+
+/* 胞子の数（ステージの上に重ねて表示） */
+.counter {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--cream);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 2px 0 rgba(30, 18, 8, 0.9), 0 0 8px rgba(0, 0, 0, 0.7);
+}
+/* 数字が長くなったら、game.js が --fit（1より小さい倍率）を入れて、まん中の空いている幅に収まるよう小さくする */
+.spores { font-family: var(--title-font); font-size: calc(2.5rem * var(--fit, 1)); font-variant-numeric: tabular-nums; }
+/* 数字1文字ずつを同じ幅の枠に入れて、増えるときに左右に揺れないようにする（幅は一番太い数字「4」に合わせた） */
+.spores .digit { display: inline-block; width: 0.62em; text-align: center; }
+.spores .mark { display: inline-block; width: 0.32em; text-align: center; }
+.spores-label { margin-left: 6px; font-size: calc(0.95rem * var(--fit, 1)); }
+.sps { color: #c8f09a; font-size: calc(0.9rem * var(--fit, 1)); font-variant-numeric: tabular-nums; }
+.sps.stacked .sps-part { display: block; }   /* 2行に分けたとき */
+.sps.stacked .sps-dot { display: none; }
+.star-line { margin-top: 1px; color: #ffe08a; font-size: 0.8rem; }
+
+/* 胞子の嵐のゲージ（数字の下）：木わくの中に、たまっていく */
+.fever-box { width: 230px; margin: 4px auto 0; }
+.fever-gauge {
+  height: 10px;
+  overflow: hidden;
+  border: 2px solid var(--wood-dark);
+  border-radius: 5px;
+  background: rgba(30, 18, 8, 0.75);
+}
+.fever-gauge span { display: block; height: 100%; background: linear-gradient(180deg, #a8e0f0, #5fb3d6); transition: width 0.1s; }
+.fever-label { margin-top: 1px; color: #d9f2ff; font-size: 0.72rem; }
+
+/* 胞子の嵐の最中：ステージのふちが金色に光り、ゲージも金色に */
+.stage.fever { border-color: var(--gold); animation: feverGlow 0.6s ease-in-out infinite alternate; }
+.stage.fever .fever-gauge span { background: linear-gradient(180deg, #ffe7a0, var(--gold)); }
+.stage.fever .fever-label { color: #ffe08a; font-size: 0.85rem; }
+@keyframes feverGlow {
+  from { box-shadow: 0 4px 0 #24160c, 0 0 10px rgba(232, 184, 74, 0.5), inset 0 0 20px rgba(232, 184, 74, 0.2); }
+  to { box-shadow: 0 4px 0 #24160c, 0 0 28px rgba(232, 184, 74, 0.9), inset 0 0 46px rgba(232, 184, 74, 0.35); }
+}
+
+/* 左上：時間帯と天気（小さな木の札） */
+.weather {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  max-width: min(30%, 170px);   /* 広がりすぎると、まん中の胞子の数を置く場所がせまくなるので上限をつける */
+  padding: 4px 9px;
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(122, 82, 51, 0.92), rgba(91, 60, 36, 0.92));
+  color: var(--cream);
+  pointer-events: none;
+  box-shadow: 0 2px 0 rgba(36, 22, 12, 0.8);
+}
+.weather-title { font-family: var(--title-font); font-size: 0.82rem; }
+.weather-effect { color: #d6f0a8; font-size: 0.7rem; }
+
+/* 右上：根のウィンドウを開く木の札 */
+.stage-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 12px;
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--wood-light), var(--wood));
+  color: var(--cream);
+  font-family: var(--title-font);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--wood-dark);
+}
+.stage-button:hover { filter: brightness(1.1); }
+.stage-button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-dark); }
+/* 「根」の下に2つ目の札（毎日） */
+.stage-button.daily-open { top: 48px; }
+.daily-open .badge { margin-left: 2px; }
+
+/* 金のキノコ：空にふわふわ浮かんで、金色に光る */
+.golden {
+  position: absolute;
+  z-index: 5;
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 10px rgba(255, 215, 90, 0.95)) drop-shadow(0 0 22px rgba(255, 190, 40, 0.6));
+  animation: goldenFloat 1.6s ease-in-out infinite;
+}
+.golden svg { width: 100%; height: 100%; }
+.golden.pop { animation: goldenPop 0.5s ease-out, goldenFloat 1.6s ease-in-out 0.5s infinite; }
+.golden:hover { filter: drop-shadow(0 0 14px rgba(255, 235, 140, 1)) drop-shadow(0 0 30px rgba(255, 200, 60, 0.8)); }
+@keyframes goldenFloat {
+  0%, 100% { margin-top: 0; transform: translate(-50%, -50%) rotate(-6deg); }
+  50% { margin-top: -10px; transform: translate(-50%, -50%) rotate(6deg); }
+}
+@keyframes goldenPop {
+  from { transform: translate(-50%, -50%) scale(0) rotate(-180deg); }
+  to { transform: translate(-50%, -50%) scale(1) rotate(-6deg); }
+}
+.golden-line { margin-top: 1px; color: #ffe066; font-size: 0.8rem; white-space: pre-line; }
+
+/* 王様キノコの右上：コンボの数 */
+.combo {
+  position: absolute;
+  left: calc(50% + var(--king) * 0.42);
+  top: calc(var(--ground) - var(--king) * 0.95);
+  color: #ffcf6b;
+  font-family: var(--title-font);
+  font-size: 1.4rem;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 2px 0 var(--wood-dark), 0 0 8px rgba(0, 0, 0, 0.6);
+}
+.combo.pop { animation: comboPop 0.18s ease-out; }
+@keyframes comboPop {
+  from { transform: scale(1.5) rotate(-6deg); }
+  to { transform: scale(1) rotate(0); }
+}
+.stage.fever .combo { color: #ffe08a; }
+
+/* 王様キノコ（地面の上に立たせる）。クリックしたときの動きは world.js が付ける */
+.mushroom {
+  position: absolute;
+  left: calc(50% - var(--king) / 2);
+  top: calc(var(--ground) - var(--king) * 0.92);
+  width: var(--king);
+  height: var(--king);
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;           /* スマホで連打しても拡大しない */
+  -webkit-tap-highlight-color: transparent;
+  transform-origin: 50% 92%;
+  animation: breathe 3s ease-in-out infinite;
+}
+.mushroom svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 92%;
+  filter: drop-shadow(0 0 16px rgba(255, 120, 90, 0.4));
+}
+.mushroom:hover svg { filter: brightness(1.08) drop-shadow(0 0 22px rgba(255, 140, 110, 0.6)); }
+.stage.fever .mushroom svg { filter: drop-shadow(0 0 30px rgba(232, 184, 74, 0.95)); }
+.mushroom .eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4s infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.02, 0.98); }
+}
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+/* 最初だけ出る説明 */
+.hint {
+  position: absolute;
+  top: calc(var(--ground) + 28px);
+  left: 50%;
+  margin: 0;
+  transform: translateX(-50%);
+  color: #ffe08a;
+  font-family: var(--title-font);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 2px 0 rgba(30, 18, 8, 0.9);
+  animation: hintBounce 1.2s ease-in-out infinite;
+}
+@keyframes hintBounce {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -6px; }
+}
+
+/* 新しい施設が育ったときのお知らせ：細長い紙の帯 */
+.announce {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  padding: 5px 18px;
+  border: 2px solid var(--paper-line);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--title-font);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  box-shadow: 0 3px 0 rgba(36, 22, 12, 0.6);
+  animation: announceIn 0.3s ease-out;
+}
+@keyframes announceIn {
+  from { opacity: 0; bottom: 0; }
+  to { opacity: 1; bottom: 14px; }
+}
+
+/* ===== 進み具合のバー（目標・施設・強化・転生で共通）：こけの緑 ===== */
+.goal-bar { height: 7px; margin-top: 5px; overflow: hidden; border: 1px solid var(--paper-line); border-radius: 4px; background: #e9d8b0; }
+.goal-bar span, .card-bar span { display: block; height: 100%; background: var(--moss); transition: width 0.2s; }
+
+/* ===== 古い紙のカード（目標・施設・強化） ===== */
+.goal, .facility, .upgrade {
+  border: 2px solid var(--paper-line);
+  border-radius: 6px;
+  background: radial-gradient(ellipse at 50% 40%, #f8edd2 55%, var(--paper-dark) 100%);
+  color: var(--ink);
+  box-shadow: 0 2px 0 rgba(36, 22, 12, 0.45);
+}
+
+/* ===== 次の目標 ===== */
+.goal-list { display: flex; flex-direction: column; gap: 6px; }
+.goal { padding: 7px 9px; }
+.goal-text { font-size: 0.85rem; font-weight: 500; }
+.goal-effect { color: var(--moss); font-size: 0.75rem; }
+.goal-remain { margin-top: 2px; color: var(--ink-soft); font-size: 0.7rem; text-align: right; }
+
+/* ===== 施設・強化 ===== */
+.buy-mode { display: flex; gap: 6px; margin-bottom: 8px; }
+.buy-mode button {
+  flex: 1;
+  padding: 4px;
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: var(--wood);
+  color: var(--cream);
+  font-family: var(--title-font);
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--wood-dark);
+}
+.buy-mode button.active { background: var(--paper); color: var(--ink); box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.15); }
+
+.facility-list, .upgrade-list { display: flex; flex-direction: column; gap: 7px; }
+
+.facility, .upgrade {
+  --hue: 45;
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px 10px;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.15s;
+}
+/* 買えないとき：紙が少しくすむ */
+.facility:not(.affordable), .upgrade:not(.affordable) { background: radial-gradient(ellipse at 50% 40%, #ece0c2 55%, #d6c095 100%); }
+/* 買えるとき：金色のふちどり */
+.facility.affordable, .upgrade.affordable { border-color: #b9851f; box-shadow: 0 0 0 2px var(--gold), 0 2px 0 rgba(36, 22, 12, 0.45); }
+.facility.affordable:hover, .upgrade.affordable:hover { transform: translateY(-1px); }
+.facility:active, .upgrade:active { transform: translateY(1px); }
+
+/* 買った瞬間：紙が白く光って弾む */
+.facility.bought, .upgrade.bought { animation: bought 0.4s ease-out; }
+@keyframes bought {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.04); filter: brightness(1.25); }
+  100% { transform: scale(1); filter: none; }
+}
+
+/* 下はしの「買えるまで」バー */
+.card-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(120, 90, 50, 0.25); }
+
+/* 施設のアイコン：施設ごとに色が少しちがう丸い紙のふだ */
+.facility-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--paper-line);
+  border-radius: 50%;
+  background: hsl(var(--hue) 45% 82%);
+  font-size: 1.4rem;
+}
+.facility:not(.affordable) .facility-icon { filter: grayscale(0.4); }
+
+.facility-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.facility-name { font-family: var(--title-font); font-size: 1rem; }
+.facility-desc { color: var(--ink-soft); font-size: 0.72rem; }
+.facility-sps { color: var(--moss); font-size: 0.75rem; }
+.facility.boosted .facility-sps { color: #2d6f8a; font-weight: 500; }   /* 天気で強くなっているとき */
+.facility-side { display: flex; flex-direction: column; align-items: flex-end; }
+.facility-owned { color: var(--wood-dark); font-family: var(--title-font); font-size: 1.6rem; line-height: 1.1; }
+.facility-cost { color: var(--red); font-size: 0.8rem; font-weight: 500; white-space: nowrap; }
+.facility.affordable .facility-cost { color: var(--ink); }
+
+.upgrade { --hue: 280; flex-direction: column; align-items: flex-start; gap: 1px; }
+.upgrade-name { font-family: var(--title-font); font-size: 0.95rem; }
+.upgrade-desc { color: var(--moss); font-size: 0.75rem; }
+.upgrade-cost { color: var(--red); font-size: 0.8rem; font-weight: 500; }
+.upgrade.affordable .upgrade-cost { color: var(--ink); }
+.empty { margin: 0; color: var(--cream); font-size: 0.85rem; opacity: 0.8; }
+
+/* ===== ウィンドウ（実績・転生・おしらせ）：木のわくに古い紙 ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(10, 8, 4, 0.7);
+}
+.modal-box {
+  max-width: 360px;
+  padding: 22px;
+  border: 6px solid var(--wood);
+  border-radius: 10px;
+  outline: 2px solid var(--wood-dark);
+  background: radial-gradient(ellipse at 50% 40%, #f8edd2 60%, var(--paper-dark) 100%);
+  color: var(--ink);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+#modal-text { white-space: pre-line; line-height: 1.8; }
+.ok-button {
+  padding: 6px 32px;
+  border: 2px solid var(--wood-dark);
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--wood-light), var(--wood));
+  color: var(--cream);
+  font-family: var(--title-font);
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--wood-dark);
+}
+
+.modal-box.modal-wide {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  max-height: 88vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.close-button {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+/* 実績 */
+.achievement-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.achievement {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 2px dashed #c9ad7d;
+  border-radius: 6px;
+  background: rgba(255, 250, 235, 0.5);
+}
+.achievement-icon { font-size: 1.6rem; filter: grayscale(1); opacity: 0.35; }
+.achievement-body { flex: 1; min-width: 0; }
+.achievement-name { color: var(--ink-soft); font-family: var(--title-font); font-size: 0.9rem; }
+.achievement-desc { color: var(--ink-soft); font-size: 0.75rem; }
+/* 達成した実績：金のはんこを押したように */
+.achievement.earned { border: 2px solid #b9851f; background: #fbf1d3; }
+.achievement.earned .achievement-icon { filter: none; opacity: 1; }
+.achievement.earned .achievement-name { color: var(--ink); }
+
+/* ログインボーナス：7日分のスタンプ */
+.modal-box.daily-box { max-width: 600px; }
+.login-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+.login-day {
+  padding: 6px 2px;
+  border: 2px dashed var(--paper-line);
+  border-radius: 8px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+.login-day.special { border-color: #c99a2a; background: #fbf1d3; }
+.login-day.done { border-style: solid; background: #efe2c0; opacity: 0.75; }
+.login-day.today { border: 2px solid #b9851f; background: #fff3c9; color: var(--ink); animation: readyGlow 1.4s ease-in-out infinite; }
+.login-day-name { font-family: var(--title-font); font-size: 0.75rem; }
+.login-day-icon { font-size: 1.4rem; }
+.login-day-reward { font-size: 0.65rem; }
+.login-claim, .mission-all { display: block; width: 100%; margin-bottom: 14px; padding: 8px; }
+.login-claim:disabled, .mission-all:disabled, .mission-claim:disabled { opacity: 0.5; cursor: default; }
+
+/* 今日のミッション */
+.mission-list { display: grid; gap: 8px; margin-bottom: 10px; }
+.mission {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--paper-line);
+  border-radius: 8px;
+  background: #fbf3dc;
+}
+.mission.complete { border: 2px solid #b9851f; }
+.mission.claimed { opacity: 0.6; }
+.mission-icon { font-size: 1.5rem; }
+.mission-body { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.mission-text { font-family: var(--title-font); font-size: 0.9rem; }
+.mission-progress { margin-top: 3px; color: var(--ink-soft); font-size: 0.72rem; }
+.mission-claim { padding: 6px 12px; white-space: nowrap; }
+.mission-claimed { color: var(--moss); font-size: 0.8rem; white-space: nowrap; }
+
+/* 世界ランキング */
+.modal-box.ranking-box { max-width: 560px; }
+.ranking-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ranking-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 6px 10px;
+  border: 2px solid var(--paper-line);
+  border-radius: 6px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+}
+.ranking-leave, .ranking-reload {
+  padding: 4px 10px;
+  border: 1px solid var(--paper-line);
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.ranking-error { min-height: 1.2em; margin: 4px 0 0; color: var(--red); font-size: 0.85rem; }
+.ranking-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 6px; }
+.ranking-me { color: #8a5a10; font-family: var(--title-font); }
+.ranking-list { margin: 0; padding: 0; list-style: none; }
+.ranking-row {
+  display: grid;
+  grid-template-columns: 2.4em minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-bottom: 1px dashed var(--paper-line);
+}
+.ranking-rank { color: var(--ink-soft); font-family: var(--title-font); text-align: center; }
+.ranking-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-stars { color: #8a5a10; font-size: 0.8rem; }
+.ranking-score { font-family: var(--title-font); text-align: right; }
+.ranking-row.top1, .ranking-row.top2, .ranking-row.top3 { font-size: 1.05rem; }
+.ranking-row.top1 .ranking-rank, .ranking-row.top2 .ranking-rank, .ranking-row.top3 .ranking-rank { font-size: 1.3rem; }
+/* 自分の行：金のふちどり */
+.ranking-row.me { border: 2px solid #b9851f; border-radius: 6px; background: #fbf1d3; }
+
+/* 星の道（転生のウィンドウの中） */
+.prestige-button + h2 { margin-top: 20px; }
+.star-road { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.star-perk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px dashed var(--paper-line);
+  border-radius: 8px;
+  color: var(--ink-soft);
+}
+.star-perk.open { border: 2px solid #b9851f; background: #fbf1d3; color: var(--ink); }
+.star-perk-icon { font-size: 1.2rem; }
+.star-perk-text { flex: 1; font-size: 0.85rem; }
+.star-perk-need { font-family: var(--title-font); font-size: 0.8rem; white-space: nowrap; }
+.star-perk.open .star-perk-need { color: var(--moss); }
+
+/* 転生 */
+.modal-box.prestige-box { max-width: 520px; }
+.prestige-desc { line-height: 1.8; }
+.prestige-desc b { color: #8a5a10; }
+.prestige-numbers { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 14px 0 8px; }
+.prestige-number { flex: 1; padding: 10px; border: 2px solid var(--paper-line); border-radius: 8px; background: rgba(255, 250, 235, 0.6); text-align: center; }
+.prestige-number .big { color: var(--wood-dark); font-family: var(--title-font); font-size: 2.1rem; }
+.prestige-number.gain { border-color: #b9851f; box-shadow: 0 0 0 2px var(--gold); }
+.prestige-arrow { color: var(--wood); font-family: var(--title-font); font-size: 1.6rem; }
+.prestige-rules { margin: 12px 0; padding-left: 1.2em; color: var(--ink-soft); font-size: 0.85rem; line-height: 1.8; }
+.prestige-button {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #8a5a10;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f6d27a, var(--gold));
+  color: var(--wood-dark);
+  font-family: var(--title-font);
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #8a5a10;
+}
+.prestige-button:active { transform: translateY(2px); box-shadow: 0 2px 0 #8a5a10; }
+.prestige-button:disabled { border-color: #a99070; background: #d9c8a4; color: #8f7a5c; box-shadow: none; cursor: not-allowed; }
+
+.modal-note { margin: 4px 0 12px; color: var(--ink-soft); font-size: 0.85rem; line-height: 1.7; }
+.modal-note b { color: #8a5a10; }
+
+/* 図鑑 */
+.zukan-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.species {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 2px solid #b9851f;
+  border-radius: 6px;
+  background: #fbf1d3;
+}
+.species-image { flex: none; width: 52px; height: 52px; }
+.species.unknown { border: 2px dashed #c9ad7d; background: rgba(255, 250, 235, 0.5); }
+.species.unknown .species-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #d9c8a4;
+  color: #8f7a5c;
+  font-family: var(--title-font);
+  font-size: 1.6rem;
+}
+.species-name { font-family: var(--title-font); font-size: 0.95rem; }
+.species-bonus { color: var(--moss); font-size: 0.78rem; }
+.species-count, .species-hint { color: var(--ink-soft); font-size: 0.72rem; }
+
+/* 菌糸の根：根ごとに色のついた木札の列 */
+.root-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 2px solid var(--paper-line);
+  border-top: 6px solid var(--root-color);
+  border-radius: 6px;
+  background: rgba(255, 250, 235, 0.6);
+}
+.root-name { color: var(--ink); font-family: var(--title-font); font-size: 0.92rem; text-align: center; }
+.root.locked { opacity: 0.6; }
+.root-locked { color: var(--ink-soft); font-size: 0.75rem; text-align: center; }
+.root-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 62px;
+  padding: 5px;
+  border: 2px solid var(--paper-line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.root-slot.member:hover { border-color: var(--root-color); }
+.root-slot.selected { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); background: #fff6dc; }
+.root-slot.empty { justify-content: center; border-style: dashed; background: transparent; color: var(--ink-soft); font-size: 0.8rem; }
+.root-icon { font-size: 1.3rem; }
+.root-member-name { font-size: 0.78rem; }
+.root-bonus { color: var(--moss); font-size: 0.72rem; }
+
+/* 相性表 */
+.synergy-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 12px; }
+.synergy { display: flex; flex-direction: column; padding: 4px 8px; border-left: 3px solid #d9c8a4; }
+.synergy-pair { font-size: 0.82rem; }
+.synergy-reason { color: var(--ink-soft); font-size: 0.72rem; }
+.synergy.active { border-left-color: var(--moss); background: rgba(140, 193, 82, 0.15); }
+.synergy.active .synergy-pair::after { content: "　効いている！"; color: var(--moss); font-size: 0.72rem; }
+
+/* 記録 */
+.stats { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0 0 16px; font-size: 0.9rem; }
+.stats dt { color: var(--ink-soft); }
+.stats dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.reset-button {
+  padding: 5px 12px;
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  background: none;
+  color: var(--red);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* ===== クリック・購入で浮かぶ文字 ===== */
+.effects { position: fixed; inset: 0; z-index: 25; pointer-events: none; overflow: hidden; }
+.float-text {
+  position: absolute;
+  color: #ffe08a;
+  font-family: var(--title-font);
+  font-size: 1.5rem;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 var(--wood-dark), 0 0 6px rgba(0, 0, 0, 0.6);
+  animation: floatUp 0.9s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { opacity: 0; margin-top: 0; transform: translate(-50%, -50%) scale(0.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+  30% { transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; margin-top: -80px; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ===== 実績解除などのお知らせ（右上）：紙の札 ===== */
+.toast-area {
+  position: fixed;
+  top: 52px;
+  right: 16px;
+  z-index: 28;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  padding: 7px 14px;
+  border: 2px solid #b9851f;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.9rem;
+  box-shadow: 0 3px 0 rgba(36, 22, 12, 0.6), 0 6px 14px rgba(0, 0, 0, 0.35);
+  animation: toastIn 0.3s ease-out, toastOut 0.4s ease-in 3.2s forwards;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(30px) rotate(3deg); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(30px); } }
+
+/* ===== 動きを減らす設定の人には、アニメーションを控えめに ===== */
+@media (prefers-reduced-motion: reduce) {
+  .mushroom, .hint, .prestige-open.ready, .stage.fever, .combo.pop, .golden, .login-day.today { animation: none !important; }
+}
+
+/* ===== スマホ・狭い画面：ステージの下をタブで切り替える ===== */
+@media (max-width: 900px) {
+  .header { padding: 6px 12px; text-align: left; }
+  .header h1 { font-size: 1.2rem; }
+  .header-buttons { right: 8px; gap: 5px; }
+  .header-button { padding: 3px 8px; font-size: 0.8rem; }
+  .button-label { display: none; }   /* スマホでは「転生」「図鑑」「実績」の文字を省いて、マークと数だけ */
+  .stage-button { top: 6px; right: 6px; padding: 2px 8px; font-size: 0.8rem; }
+  .stage-button.daily-open { top: 36px; }
+  .golden { width: 46px; height: 46px; }
+  .golden-line { font-size: 0.68rem; }
+  .login-day-reward { display: none; }
+  .login-calendar { gap: 3px; }
+  .login-day-name { font-size: 0.58rem; white-space: nowrap; }
+  .toast-area { top: 44px; right: 8px; }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 0.95fr) auto minmax(0, 1fr);
+    grid-template-areas: "stage" "tabs" "panel";
+    gap: 8px;
+    padding: 0 8px 8px;
+  }
+  .stage { --ground: 61%; --king: 100px; }
+  .spores { font-size: calc(1.8rem * var(--fit, 1)); }
+  .spores-label { font-size: calc(0.95rem * var(--fit, 1)); }
+  .sps { font-size: calc(0.75rem * var(--fit, 1)); }
+  .star-line { font-size: 0.7rem; }
+  .fever-box { width: 170px; }
+  .fever-label { font-size: 0.62rem; }
+  .weather { top: 6px; left: 6px; max-width: 28%; padding: 3px 6px; }
+  .weather-title { font-size: 0.64rem; }
+  .weather-effect { font-size: 0.58rem; }
+  .combo { font-size: 1.05rem; }
+  .hint, .announce { font-size: 0.8rem; }
+
+  /* タブ：木の札 */
+  .tabs { grid-area: tabs; display: flex; gap: 6px; }
+  .tabs button {
+    flex: 1;
+    padding: 5px;
+    border: 2px solid var(--wood-dark);
+    border-radius: 8px;
+    background: var(--wood);
+    color: var(--cream);
+    font-family: var(--title-font);
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--wood-dark);
+  }
+  .tabs button.active { background: var(--paper); color: var(--ink); }
+
+  .side, .panel-shop { grid-area: panel; }
+  .side { gap: 8px; }
+  .app[data-tab="shop"] .side { display: none; }
+  .app[data-tab="side"] .panel-shop { display: none; }
+}
+
+/* とても狭いスマホ：タイトルとボタンを少し小さくして、重ならないようにする */
+@media (max-width: 420px) {
+  .header h1 { font-size: 1rem; letter-spacing: 0.04em; }
+  .header-buttons { gap: 4px; }
+  .header-button { padding: 3px 6px; }
+}
+@media (max-width: 380px) {
+  .title-icon { display: none; }   /* もっと狭いときは、タイトルの🍄を省く */
+}
+
+/* 高さがとても低い画面では、ページ全体のスクロールを許す */
+@media (max-height: 480px) {
+  html, body { overflow: auto; }
+  .app { height: auto; }
+  .layout { grid-template-rows: 420px; }
+}
