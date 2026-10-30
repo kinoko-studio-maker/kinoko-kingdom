@@ -93,14 +93,15 @@
       <!-- スマホだけ：下の表示を切り替えるタブ -->
       <nav class="tabs">
         <button data-tab="shop" class="active">施設</button>
-        <button data-tab="side">目標・強化 <span id="tab-badge" class="badge" hidden></span></button>
+        <button data-tab="upgrade">強化 <span id="tab-badge" class="badge" hidden></span></button>
+        <button data-tab="goal">目標</button>
       </nav>
 
       <!-- 次の目標 と 強化 -->
       <aside class="side">
         <section class="panel panel-goal">
           <h2>次の目標</h2>
-          <div id="goal-list" class="goal-list"></div>
+          <div id="goal-list" class="goal-list scroll"></div>
         </section>
         <section class="panel panel-upgrade">
           <h2>強化 <span id="upgrade-badge" class="badge" hidden></span></h2>

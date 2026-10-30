@@ -143,7 +143,7 @@ button { font: inherit; }
 .modal-box h2 { display: inline-block; }   /* ウィンドウの中でも、小さな看板の形にする */
 
 .side { grid-area: side; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-.panel-goal { flex: none; }
+.panel-goal { flex: none; max-height: 42%; }   /* 目標が多くても、強化の一覧の場所を残す（あふれた分は中でスクロール） */
 .panel-upgrade { flex: 1; }
 .panel-shop { grid-area: shop; }
 .scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 4px 2px; }   /* 一覧が長いときは、その中だけスクロール */
@@ -320,6 +320,16 @@ button { font: inherit; }
   -webkit-tap-highlight-color: transparent;
   transform-origin: 50% 92%;
   animation: breathe 3s ease-in-out infinite;
+}
+/* 押せる範囲：絵より広くして、連打しやすくする（見た目の大きさは変えない）。金のキノコは前面にあるので邪魔しない */
+.mushroom::before {
+  content: "";
+  position: absolute;
+  left: -35%;
+  right: -35%;
+  top: -25%;
+  bottom: -18%;
+  border-radius: 50%;
 }
 .mushroom svg {
   display: block;
@@ -878,8 +888,14 @@ button { font: inherit; }
 
   .side, .panel-shop { grid-area: panel; }
   .side { gap: 8px; }
+  /* タブは「施設」「強化」「目標」の3つ。選んだものだけを、下の場所いっぱいに出す */
   .app[data-tab="shop"] .side { display: none; }
-  .app[data-tab="side"] .panel-shop { display: none; }
+  .app[data-tab="upgrade"] .panel-shop, .app[data-tab="goal"] .panel-shop { display: none; }
+  .app[data-tab="upgrade"] .panel-goal { display: none; }
+  .app[data-tab="goal"] .panel-upgrade { display: none; }
+  .app[data-tab="goal"] .panel-goal { flex: 1; max-height: none; }
+  /* スマホは指が太いので、押せる範囲をもっと広げる */
+  .mushroom::before { left: -50%; right: -50%; top: -35%; bottom: -25%; }
 }
 
 /* とても狭いスマホ：タイトルとボタンを少し小さくして、重ならないようにする */
